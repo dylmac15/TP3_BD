@@ -415,6 +415,29 @@ END$$
 DELIMITER ;
 call showAvailableSpaces();
 
+DROP PROCEDURE IF EXISTS FnOccupiedBySubscriptions;
+DELIMITER $$
+CREATE PROCEDURE `FnOccupiedBySubscriptions`(p_Date Date)
+READS SQL DATA
+DETERMINISTIC
+BEGIN
+    DECLARE subSpaces int;
+    DECLARE occupiedPlaces int;
+    
+	SELECT idSpace AS 'Space'
+    FROM Subscription sub
+	WHERE sub.startDate < p_Date AND sub.endDate > p_Date;
+    
+    
+    SELECT idVehicle AS 'Vehicle'
+    FROM Subscriber subscrib INNER JOIN Subscription sub
+    ON subcriber.idSubscriber = sub.idSubscriber
+    WHERE sub.startDate < p_Date AND sub.endDate > p_Date;
+   
+    
+END $$
+DELIMITER ;
+Call FnOccupiedBySubscriptions((SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2000-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')));
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
