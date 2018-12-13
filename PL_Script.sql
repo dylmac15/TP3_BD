@@ -424,20 +424,40 @@ BEGIN
     DECLARE subSpaces int;
     DECLARE occupiedPlaces int;
     
-	SELECT idSpace AS 'Space'
-    FROM Subscription sub
-	WHERE sub.startDate < p_Date AND sub.endDate > p_Date;
-    
-    
-    SELECT idVehicle AS 'Vehicle'
-    FROM Subscriber subscrib INNER JOIN Subscription sub
-    ON subcriber.idSubscriber = sub.idSubscriber
-    WHERE sub.startDate < p_Date AND sub.endDate > p_Date;
-   
+    DROP TEMPORARY TABLE IF EXISTS tmp;
+    CREATE TEMPORARY TABLE tmp SELECT sub.idSpace , subscrib.idVehicle , sub.startDate , sub.endDate FROM Subscription sub 
+    INNER JOIN Subscriber subscrib ON sub.idSubscriber  = subscrib.idSubscriber WHERE sub.startDate < p_Date AND sub.endDate > p_Date;
     
 END $$
 DELIMITER ;
 Call FnOccupiedBySubscriptions((SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2000-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')));
+
+DELIMITER | 
+CREATE TRIGGER on_update_number_of_spaces_occupied_occasional AFTER INSERT 
+ON Occasional FOR EACH ROW 
+BEGIN
+		
+	
+END |
+DELIMITER ;
+
+
+
+
+DELIMITER | 
+CREATE TRIGGER on_update_number_of_spaces_occupied_subscription AFTER UPDATE
+ON Subscription FOR EACH ROW 
+BEGIN
+	SELECT FnFindAvailableSpaces(1);
+	SELECT FnFindAvailableSpaces(2);
+END |
+DELIMITER ;
+
+ INSERT INTO `Occasional` (startDate, endDate, paidPrice, idPaymentMethod) VALUES ('2000-01-01 00:00:00', null , 20, 1);
+
+-- DROP temporary table tmp;
+
+Select * from tmp;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
