@@ -58,6 +58,15 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Subscriber` (
 ENGINE = InnoDB;
 
 -- -----------------------------------------------------
+-- Table `mydb`.`Subscription_Type`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Subscription_Type` (
+  `idSubscription_Type` INT NOT NULL AUTO_INCREMENT,
+  `subscription_Type` VARCHAR(45) NOT NULL DEFAULT 'NULL',
+  PRIMARY KEY (`idSubscription_Type`))
+ENGINE = InnoDB;
+
+-- -----------------------------------------------------
 -- Table `mydb`.`Person_Type`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`Person_Type` (
@@ -114,10 +123,12 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Subscription` (
   `paidPrice` DECIMAL(6,2) NOT NULL,
   `creditCardNumber` VARCHAR(45) NOT NULL DEFAULT 'NULL',
   `idPaymentMethod` INT NOT NULL,
+  `idSubscriptionType` INT NOT NULL,
   PRIMARY KEY (`idSubscription`),
   INDEX `FK_Subscriber_Id_idx` (`idSubscriber` ASC) VISIBLE,
   INDEX `FK_Space_Id_Subscription_idx` (`idSpace` ASC) VISIBLE,
   INDEX `FK_Payment_Method_Id_Subcription_idx` (`idPaymentMethod` ASC) VISIBLE,
+  INDEX `FK_Type_Subscription_Id_idx` (`idSubscriptionType` ASC) VISIBLE,
   CONSTRAINT `FK_Subscriber_Id`
     FOREIGN KEY (`idSubscriber`)
     REFERENCES `mydb`.`Subscriber` (`idSubscriber`)
@@ -132,9 +143,15 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Subscription` (
     FOREIGN KEY (`idPaymentMethod`)
     REFERENCES `mydb`.`Payment_Method` (`idPayment_Method`)
     ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+   CONSTRAINT `FK_Type_Subscription`
+    FOREIGN KEY (`idSubscriptionType`)
+    REFERENCES `mydb`.`Subscription_Type` (`idSubscription_Type`)
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
-
+-- SET sql_safe_updates = 0;
+-- DELETE FROM Subscription;
 
 -- -----------------------------------------------------
 -- Table `mydb`.`Occasional`
@@ -143,17 +160,10 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Occasional` (
   `idOccasional` INT NOT NULL AUTO_INCREMENT,
   `startDate` DATETIME NOT NULL,
   `endDate` DATETIME,
-  `paidPrice` DECIMAL(6,2) NOT NULL,
-  `idSpace` INT NOT NULL,
+  `paidPrice` DECIMAL(6,2),
   `idPaymentMethod` INT NOT NULL,
   PRIMARY KEY (`idOccasional`),
-  INDEX `FK_Space_Id_Occasional_idx` (`idSpace` ASC) VISIBLE,
   INDEX `FK_Payment_Method_Id_Occasional_idx` (`idPaymentMethod` ASC) VISIBLE,
-  CONSTRAINT `FK_Space_Id_Occasional`
-    FOREIGN KEY (`idSpace`)
-    REFERENCES `mydb`.`Space` (`idSpace`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
   CONSTRAINT `FK_Payment_Method_Id_Occasional`
     FOREIGN KEY (`idPaymentMethod`)
     REFERENCES `mydb`.`Payment_Method` (`idPayment_Method`)
@@ -161,6 +171,44 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Occasional` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
+
+DELIMITER |
+CREATE FUNCTION randomNumber(p_Min INTEGER, p_Max INTEGER)
+RETURNS INTEGER(11)
+READS SQL DATA
+DETERMINISTIC
+BEGIN
+  RETURN floor(p_Min+RAND()*(p_Max-p_Min));
+END |
+DELIMITER ;
+
+DROP FUNCTION IF EXISTS FnTimeSpent;
+DELIMITER |
+CREATE FUNCTION `FnTimeSpent`(p_StartDate Datetime, p_endDate Datetime)
+RETURNS int
+READS SQL DATA
+DETERMINISTIC
+BEGIN
+	SET @timeSpent = (SELECT TIMESTAMPDIFF(HOUR, p_StartDate, p_endDate));
+Return timeSpent;
+END |
+DELIMITER ;
+
+
+
+
+DROP FUNCTION IF EXISTS FnRandomDateBetween;
+DELIMITER |
+CREATE FUNCTION `FnRandomDateBetween` (date_from DATETIME, date_to DATETIME) 
+RETURNS DATETIME
+READS SQL DATA
+DETERMINISTIC
+BEGIN 
+  DECLARE result DATETIME;
+  SET result = (SELECT FROM_UNIXTIME(UNIX_TIMESTAMP(date_from) + FLOOR(RAND() * ( UNIX_TIMESTAMP(date_to) - UNIX_TIMESTAMP(date_from) + 1 ) )));
+  RETURN result;
+END |
+DELIMITER ;
 
 DROP PROCEDURE IF EXISTS insertPaymentMethod;
 DELIMITER $$
@@ -171,6 +219,14 @@ END$$
 DELIMITER ;
 call insertPaymentMethod();
 
+DROP PROCEDURE IF EXISTS insertSubscriptionType;
+DELIMITER $$
+CREATE PROCEDURE `insertSubscriptionType`()
+BEGIN
+	INSERT INTO `Subscription_Type`(subscription_Type) VALUES ('Monthly'), ('Annual');
+END$$
+DELIMITER ;
+call insertSubscriptionType();
 
 DROP PROCEDURE IF EXISTS insertSpaceType;
 DELIMITER $$
@@ -223,10 +279,6 @@ END$$
 DELIMITER ;
 call insert700Subscriber();
 
--- INSERT INTO Occasional (startDate, endDate, paidPrice, idSpace, idPaymentMethod) VALUES ("18.07.19", NULL,  '200.04', 501 , 1);
--- INSERT INTO Occasional (startDate, endDate, paidPrice, idSpace, idPaymentMethod) VALUES ("18.07.19", "18.07.20",  '200.04', 500, 1);
--- INSERT INTO Occasional (startDate, endDate, paidPrice, idSpace, idPaymentMethod) VALUES ("18.07.19", "18.07.20",  '200.04', 499, 1);
--- INSERT INTO Occasional (startDate, endDate, paidPrice, idSpace, idPaymentMethod) VALUES ("18.07.19", NULL,  '200.04', 498 , 1);
 
 DROP PROCEDURE IF EXISTS insertSpace;
 DELIMITER $$
@@ -252,15 +304,77 @@ CREATE PROCEDURE `insertSubscription`()
 BEGIN
 DECLARE i int default 1;
 DECLARE idSubscriber int;
-DECLARE idSpace int;
+DECLARE v_idSpace int;
 DECLARE startDate date;
 DEClARE endDate date;
-	while i <= 700 DO
-		
+DECLARE paidPrice decimal(6,2);
+DECLARE idSubscriptionType int;
+DECLARE idPaymentMethod int;
 
+	while i <= 500 DO
+		SET idSubscriptionType = (SELECT randomNumber(1,3));
+        SET idPaymentMethod = (SELECT randomNumber(1,3));
+        
+		SET v_idSpace = (SELECT randomNumber(1, 2501));
+		while v_idSpace IN (SELECT idSpace FROM Subscription)DO
+			SET v_idSpace = (SELECT randomNumber(1, 2501));
+        END WHILE;
+        
+        SET startDate = (SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2000-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d'));
+        
+        CASE WHEN idSubscriptionType = 1 THEN
+			 SET endDate = DATE_ADD(startDate, interval 1 month);
+             SET paidPrice = 240;
+			When idSubscriptionType = 2 THEN
+			 SET endDate = DATE_ADD(startDate, interval 1 year);
+             SET paidPrice = 2500;
+		END CASE;
+        
+        INSERT INTO `Subscription` (idSubscriber, idSpace, startDate, endDate, paidPrice, creditCardNumber, idPaymentMethod, idSubscriptionType) VALUES (i, v_idSpace, startDate, endDate, paidPrice, "xxxx xxxx xxxx", idPaymentMethod, idSubscriptionType);
+		SET i = i + 1;
 	END WHILE;
 END$$
 DELIMITER ;
+Call insertSubscription();
+
+DROP PROCEDURE IF EXISTS insertOccasional;
+DELIMITER $$
+CREATE PROCEDURE `insertOccasional`()
+BEGIN
+DECLARE i int default 1;
+DECLARE startDate datetime;
+DEClARE endDate datetime;
+DECLARE paidPrice decimal(6,2);
+DECLARE idPaymentMethod int;
+
+	WHILE i <= 1500 DO	
+		 SET startDate = (SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2000-01-01 00:00:00') + FLOOR(0 + (RAND() * 63072000 / 2))), '%Y-%m-%d %H:%i:%s'));         
+		 SET endDate = (SELECT FnRandomDateBetween(startDate, (SELECT DATE_ADD(startDate, INTERVAL 1 DAY))));
+
+         
+		 SET paidPrice = (SELECT TIMESTAMPDIFF(HOUR, StartDate, endDate));
+         
+
+			CASE WHEN paidPrice = 0 THEN
+				SET paidPrice = 5;			
+				WHEN paidPrice > 0 && paidPrice < 4 THEN
+				SET paidPrice = paidPrice * 5;
+				WHEN paidPrice >= 4 && paidPrice < 24 THEN
+				SET paidPrice = 20;
+			END CASE;
+         
+         SET idPaymentMethod = (SELECT randomNumber(1,3));
+        
+		INSERT INTO `Occasional` (startDate, endDate, paidPrice, idPaymentMethod) VALUES (startDate, endDate, paidPrice, idPaymentMethod);
+
+         SET i = i + 1;
+    END WHILE;
+     UPDATE Occasional SET endDate = null WHERE idOccasional > 1000;
+	 UPDATE Occasional SET paidPrice = null WHERE idOccasional > 1000;
+END$$
+DELIMITER ;
+Call insertOccasional();
+
 DROP FUNCTION IF EXISTS FnFindAvailableSpaces;
 DELIMITER |
 CREATE FUNCTION `FnFindAvailableSpaces`(p_idSpaceType int)
@@ -279,15 +393,14 @@ BEGIN
     WHERE spa.idSpaceType = p_idSpaceType;
     
     SELECT COUNT(*) INTO occSpaces
-    FROM Occasional occ inner join Space spa
-    ON occ.idSpace = spa.idSpace
-    WHERE occ.endDate is NULL && spa.idSpaceType = p_idSpaceType;
+    FROM Occasional occ
+    WHERE occ.endDate is NULL;
     
     SELECT COUNT(*) INTO spaces
     FROM Space spa
     WHERE spa.idSpaceType = p_idSpaceType;
     
-    SET availableSpaces = spaces - (subSpaces + occSpaces);
+    SET availableSpaces = spaces - (subSpaces + (occSpaces / 2));
     
 Return availableSpaces;
 END |
@@ -301,7 +414,6 @@ select FnFindAvailableSpaces(1) + FnFindAvailableSpaces(2) as 'Available spaces'
 END$$
 DELIMITER ;
 call showAvailableSpaces();
-
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
