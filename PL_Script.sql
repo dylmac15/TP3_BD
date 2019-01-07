@@ -8,17 +8,17 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
 -- -----------------------------------------------------
--- Schema mydb
+-- Schema parkingLot
 -- -----------------------------------------------------
 
 -- -----------------------------------------------------
--- Schema mydb
+-- Schema parkingLot
 -- -----------------------------------------------------
 CREATE SCHEMA IF NOT EXISTS `parkingLot` DEFAULT CHARACTER SET utf8 ;
 USE `parkingLot` ;
 
 -- -----------------------------------------------------
--- Table `mydb`.`Vehicle`
+-- Table `parkingLot`.`Vehicle`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `parkingLot`.`Vehicle` (
   `idVehicle` INT NOT NULL AUTO_INCREMENT,
@@ -30,7 +30,7 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`Subscriber`
+-- Table `parkingLot`.`Subscriber`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `parkingLot`.`Subscriber` (
   `idSubscriber` INT NOT NULL AUTO_INCREMENT,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS `parkingLot`.`Subscriber` (
 ENGINE = InnoDB;
 
 -- -----------------------------------------------------
--- Table `mydb`.`Subscription_Type`
+-- Table `parkingLot`.`Subscription_Type`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `parkingLot`.`Subscription_Type` (
   `idSubscription_Type` INT NOT NULL AUTO_INCREMENT,
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `parkingLot`.`Subscription_Type` (
 ENGINE = InnoDB;
 
 -- -----------------------------------------------------
--- Table `mydb`.`Person_Type`
+-- Table `parkingLot`.`Person_Type`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `parkingLot`.`Person_Type` (
   `idperson_Type` INT NOT NULL AUTO_INCREMENT,
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS `parkingLot`.`Person_Type` (
 ENGINE = InnoDB;
 
 -- -----------------------------------------------------
--- Table `mydb`.`Space_Type`
+-- Table `parkingLot`.`Space_Type`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `parkingLot`.`Space_Type` (
   `idSpace_Type` INT NOT NULL AUTO_INCREMENT,
@@ -86,7 +86,7 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`Space`
+-- Table `parkingLot`.`Space`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `parkingLot`.`Space` (
   `idSpace` INT NOT NULL AUTO_INCREMENT,
@@ -102,7 +102,7 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`Payment_Method`
+-- Table `parkingLot`.`Payment_Method`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `parkingLot`.`Payment_Method` (
   `idPayment_Method` INT NOT NULL AUTO_INCREMENT,
@@ -112,7 +112,7 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`Subscription`
+-- Table `parkingLot`.`Subscription`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `parkingLot`.`Subscription` (
   `idSubscription` INT NOT NULL AUTO_INCREMENT,
@@ -155,7 +155,7 @@ ENGINE = InnoDB;
 -- DELETE FROM Subscription;
 
 -- -----------------------------------------------------
--- Table `mydb`.`Occasional`
+-- Table `parkingLot`.`Occasional`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `parkingLot`.`Occasional` (
   `idOccasional` INT NOT NULL AUTO_INCREMENT,
