@@ -197,6 +197,7 @@ BEGIN
 END $$
 DELIMITER ;
 
+
 DELIMITER $$
 CREATE TRIGGER updateOccCount AFTER INSERT ON Occasional
 FOR EACH ROW
@@ -210,6 +211,7 @@ BEGIN
 END $$
 DELIMITER ;
 
+
 DELIMITER |
 CREATE FUNCTION randomNumber(p_Min INTEGER, p_Max INTEGER)
 RETURNS INTEGER(11)
@@ -219,6 +221,7 @@ BEGIN
   RETURN floor(p_Min+RAND()*(p_Max-p_Min));
 END |
 DELIMITER ;
+
 
 DROP FUNCTION IF EXISTS FnTimeSpent;
 DELIMITER |
@@ -231,8 +234,6 @@ BEGIN
 Return timeSpent;
 END |
 DELIMITER ;
-
-
 
 
 DROP FUNCTION IF EXISTS FnRandomDateBetween;
@@ -334,7 +335,7 @@ DECLARE i int default 1;
 	END WHILE;
 END$$
 DELIMITER ;
-CALL insertSpace();
+
 
 DROP PROCEDURE IF EXISTS insertSubscription;
 DELIMITER $$
@@ -378,7 +379,7 @@ DECLARE paymentDate DATE;
 	END WHILE;
 END$$
 DELIMITER ;
-Call insertSubscription();
+
 
 DROP PROCEDURE IF EXISTS insertOccasional;
 DELIMITER $$
@@ -416,7 +417,6 @@ DECLARE idPaymentMethod int;
 	 UPDATE Occasional SET paidPrice = null WHERE idOccasional > 1000;
 END$$
 DELIMITER ;
-Call insertOccasional();
 
 
 DROP FUNCTION IF EXISTS FnFindAvailableSpaces;
@@ -450,6 +450,7 @@ Return availableSpaces;
 END |
 DELIMITER ;
 
+
 DROP PROCEDURE IF EXISTS addNewSub;
 DELIMITER $$
 CREATE PROCEDURE `addNewSub`(p_IdSubscriber int,p_StartDate Date, p_CardNumber Varchar(45), p_IdPaymentMethod int, p_IdSubscriptionType int)
@@ -479,12 +480,10 @@ DECLARE v_idSpace int;
 END$$
 DELIMITER ;
 
-call addNewSub((SELECT randomNumber(1,701)) ,(SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')), 'xxxx-xxxx-xxxx-xxxx', 2, 2);
 
-
-DROP PROCEDURE IF EXISTS FnOccupiedBySubscriptions;
+DROP PROCEDURE IF EXISTS OccupiedBySubscriptions;
 DELIMITER $$
-CREATE PROCEDURE `FnOccupiedBySubscriptions`(p_Date Date)
+CREATE PROCEDURE `OccupiedBySubscriptions`(p_Date Date)
 READS SQL DATA
 DETERMINISTIC
 BEGIN
@@ -498,9 +497,9 @@ BEGIN
     
     
     Select * from tmp ;
-    Select COUNT(*) from tmp ;
 END $$
 DELIMITER ;
+
 
 DROP PROCEDURE IF EXISTS CalculateMoneyMade;
 DELIMITER $$
@@ -508,24 +507,28 @@ CREATE PROCEDURE `CalculateMoneyMade`(p_Date Date)
 READS SQL DATA
 DETERMINISTIC
 BEGIN
-	Select SUM(paidPrice) as 'Total Money Made' from Subscription sub 
-    LEFT JOIN payment_method pm on sub.idPaymentMethod = pm.idPayment_Method where sub.paymentDate = p_Date;
+	Select SUM(paidPrice) as 'Total Money Made Subscription' from Subscription sub 
+    INNER JOIN payment_method pm on sub.idPaymentMethod = pm.idPayment_Method where sub.paymentDate = p_Date;
     
-    Select SUM(paidPrice) as 'Total Money Made' from Occasional occ 
-    LEFT JOIN payment_method pm on occ.idPaymentMethod = pm.idPayment_Method where occ.startDate = p_Date;
+    Select SUM(paidPrice) as 'Total Money Made Occasional' from Occasional occ 
+    INNER JOIN payment_method pm on occ.idPaymentMethod = pm.idPayment_Method where occ.startDate = p_Date;
     
 END $$
 DELIMITER ;
 
-call CalculateMoneyMade('2019-12-24');
 
-Select FnFindAvailableSpaces(1);
+CALL insertSpace();
+CALL insertSubscription();
+CALL insertOccasional();
+CALL CalculateMoneyMade('2019-12-24');
+CALL OccupiedBySubscriptions((SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')));
+CALL addNewSub((SELECT randomNumber(1,701)) ,(SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')), 'xxxx-xxxx-xxxx-xxxx', 2, 2);
 
-Call FnOccupiedBySubscriptions((SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')));
 
-call addNewSub((SELECT randomNumber(1,701)) ,(SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')), 'xxxx-xxxx-xxxx-xxxx', 2, 2);
-call addNewSub((SELECT randomNumber(1,701)) ,(SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')), 'xxxx-xxxx-xxxx-xxxx', 2, 2);
-call addNewSub((SELECT randomNumber(1,701)) ,(SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')), 'xxxx-xxxx-xxxx-xxxx', 2, 2);
+Select FnFindAvailableSpaces(1) AS "Outdoor Avaible Spaces";
+Select FnFindAvailableSpaces(2) AS "Indoor Avaible Spaces";
+
+
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
