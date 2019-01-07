@@ -14,13 +14,13 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- -----------------------------------------------------
 -- Schema mydb
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `mydb` DEFAULT CHARACTER SET utf8 ;
-USE `mydb` ;
+CREATE SCHEMA IF NOT EXISTS `parkingLot` DEFAULT CHARACTER SET utf8 ;
+USE `parkingLot` ;
 
 -- -----------------------------------------------------
 -- Table `mydb`.`Vehicle`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Vehicle` (
+CREATE TABLE IF NOT EXISTS `parkingLot`.`Vehicle` (
   `idVehicle` INT NOT NULL AUTO_INCREMENT,
   `brand` VARCHAR(45) NOT NULL DEFAULT 'NULL',
   `model` VARCHAR(45) NOT NULL DEFAULT 'NULL',
@@ -32,7 +32,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `mydb`.`Subscriber`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Subscriber` (
+CREATE TABLE IF NOT EXISTS `parkingLot`.`Subscriber` (
   `idSubscriber` INT NOT NULL AUTO_INCREMENT,
   `lastName` VARCHAR(45) NOT NULL DEFAULT 'NULL',
   `firstName` VARCHAR(45) NOT NULL DEFAULT 'NULL',
@@ -46,13 +46,13 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Subscriber` (
   INDEX `FK_Vehicle_Id_Subscriber_idx` (`idVehicle` ASC) VISIBLE,
   CONSTRAINT `FK_Vehicle_Id_Subscriber`
     FOREIGN KEY (`idVehicle`)
-    REFERENCES `mydb`.`Vehicle` (`idVehicle`)
+    REFERENCES `parkingLot`.`Vehicle` (`idVehicle`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   INDEX `FK_Person_Type_Id_idx` (`idPersonType` ASC) VISIBLE,
   CONSTRAINT `FK_Person_Type_Id`
     FOREIGN KEY (`idPersonType`)
-    REFERENCES `mydb`.`Person_Type` (`idPerson_Type`)
+    REFERENCES `parkingLot`.`Person_Type` (`idPerson_Type`)
 	ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -60,7 +60,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `mydb`.`Subscription_Type`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Subscription_Type` (
+CREATE TABLE IF NOT EXISTS `parkingLot`.`Subscription_Type` (
   `idSubscription_Type` INT NOT NULL AUTO_INCREMENT,
   `subscription_Type` VARCHAR(45) NOT NULL DEFAULT 'NULL',
   PRIMARY KEY (`idSubscription_Type`))
@@ -69,7 +69,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `mydb`.`Person_Type`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Person_Type` (
+CREATE TABLE IF NOT EXISTS `parkingLot`.`Person_Type` (
   `idperson_Type` INT NOT NULL AUTO_INCREMENT,
   `person_Type` VARCHAR(45) NOT NULL DEFAULT 'NULL',
   PRIMARY KEY (`idPerson_Type`))
@@ -78,7 +78,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `mydb`.`Space_Type`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Space_Type` (
+CREATE TABLE IF NOT EXISTS `parkingLot`.`Space_Type` (
   `idSpace_Type` INT NOT NULL AUTO_INCREMENT,
   `space_Type` VARCHAR(45) NOT NULL DEFAULT 'NULL',
   PRIMARY KEY (`idSpace_Type`))
@@ -88,14 +88,14 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `mydb`.`Space`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Space` (
+CREATE TABLE IF NOT EXISTS `parkingLot`.`Space` (
   `idSpace` INT NOT NULL AUTO_INCREMENT,
   `idSpaceType` INT NOT NULL,
   PRIMARY KEY (`idSpace`),
   INDEX `FK_Space_Type_Id_idx` (`idSpaceType` ASC) VISIBLE,
   CONSTRAINT `FK_Space_Type_Id`
     FOREIGN KEY (`idSpaceType`)
-    REFERENCES `mydb`.`Space_Type` (`idSpace_Type`)
+    REFERENCES `parkingLot`.`Space_Type` (`idSpace_Type`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -104,7 +104,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `mydb`.`Payment_Method`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Payment_Method` (
+CREATE TABLE IF NOT EXISTS `parkingLot`.`Payment_Method` (
   `idPayment_Method` INT NOT NULL AUTO_INCREMENT,
   `payment_Method` VARCHAR(45) NOT NULL DEFAULT 'NULL',
   PRIMARY KEY (`idPayment_Method`))
@@ -114,12 +114,13 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `mydb`.`Subscription`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Subscription` (
+CREATE TABLE IF NOT EXISTS `parkingLot`.`Subscription` (
   `idSubscription` INT NOT NULL AUTO_INCREMENT,
   `idSubscriber` INT NOT NULL,
   `idSpace` INT NOT NULL,
   `startDate` DATE NOT NULL,
   `endDate` DATE NOT NULL,
+  `paymentDate` DATE NOT NULL,
   `paidPrice` DECIMAL(6,2) NOT NULL,
   `creditCardNumber` VARCHAR(45) NOT NULL DEFAULT 'NULL',
   `idPaymentMethod` INT NOT NULL,
@@ -131,22 +132,22 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Subscription` (
   INDEX `FK_Type_Subscription_Id_idx` (`idSubscriptionType` ASC) VISIBLE,
   CONSTRAINT `FK_Subscriber_Id`
     FOREIGN KEY (`idSubscriber`)
-    REFERENCES `mydb`.`Subscriber` (`idSubscriber`)
+    REFERENCES `parkingLot`.`Subscriber` (`idSubscriber`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `FK_Space_Id_Subscription`
     FOREIGN KEY (`idSpace`)
-    REFERENCES `mydb`.`Space` (`idSpace`)
+    REFERENCES `parkingLot`.`Space` (`idSpace`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `FK_Payment_Method_Id_Subcription`
     FOREIGN KEY (`idPaymentMethod`)
-    REFERENCES `mydb`.`Payment_Method` (`idPayment_Method`)
+    REFERENCES `parkingLot`.`Payment_Method` (`idPayment_Method`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
    CONSTRAINT `FK_Type_Subscription`
     FOREIGN KEY (`idSubscriptionType`)
-    REFERENCES `mydb`.`Subscription_Type` (`idSubscription_Type`)
+    REFERENCES `parkingLot`.`Subscription_Type` (`idSubscription_Type`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -156,7 +157,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `mydb`.`Occasional`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`Occasional` (
+CREATE TABLE IF NOT EXISTS `parkingLot`.`Occasional` (
   `idOccasional` INT NOT NULL AUTO_INCREMENT,
   `startDate` DATETIME NOT NULL,
   `endDate` DATETIME,
@@ -166,11 +167,48 @@ CREATE TABLE IF NOT EXISTS `mydb`.`Occasional` (
   INDEX `FK_Payment_Method_Id_Occasional_idx` (`idPaymentMethod` ASC) VISIBLE,
   CONSTRAINT `FK_Payment_Method_Id_Occasional`
     FOREIGN KEY (`idPaymentMethod`)
-    REFERENCES `mydb`.`Payment_Method` (`idPayment_Method`)
+    REFERENCES `parkingLot`.`Payment_Method` (`idPayment_Method`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
+Create table `parkingLot`.`currentSubCount` (
+`totalSubs` int
+); 
+
+Create table `parkingLot`.`currentOccCount` (
+`totalOcc` int
+); 
+
+insert into currentSubCount values (0);
+insert into currentOccCount values (0);
+
+
+DELIMITER $$
+CREATE TRIGGER updateSubCount AFTER INSERT ON Subscription
+FOR EACH ROW
+BEGIN
+	
+    update currentSubCount
+    set totalSubs = 
+	(SELECT COUNT(*)
+	FROM Subscription where curdate() <= endDate);
+    
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER updateOccCount AFTER INSERT ON Occasional
+FOR EACH ROW
+BEGIN
+	
+    update currentOccCount
+    set totalOcc = 
+	(SELECT COUNT(*)
+	FROM Occasional where endDate = null);
+    
+END $$
+DELIMITER ;
 
 DELIMITER |
 CREATE FUNCTION randomNumber(p_Min INTEGER, p_Max INTEGER)
@@ -310,6 +348,7 @@ DEClARE endDate date;
 DECLARE paidPrice decimal(6,2);
 DECLARE idSubscriptionType int;
 DECLARE idPaymentMethod int;
+DECLARE paymentDate DATE;
 
 	while i <= 500 DO
 		SET idSubscriptionType = (SELECT randomNumber(1,3));
@@ -320,7 +359,11 @@ DECLARE idPaymentMethod int;
 			SET v_idSpace = (SELECT randomNumber(1, 2501));
         END WHILE;
         
-        SET startDate = (SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2000-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d'));
+        
+        SET startDate = (SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d'));
+        SET paymentDate = DATE_SUB(startDate, INTERVAL 1 DAY); 
+        
+       
         
         CASE WHEN idSubscriptionType = 1 THEN
 			 SET endDate = DATE_ADD(startDate, interval 1 month);
@@ -330,7 +373,7 @@ DECLARE idPaymentMethod int;
              SET paidPrice = 2500;
 		END CASE;
         
-        INSERT INTO `Subscription` (idSubscriber, idSpace, startDate, endDate, paidPrice, creditCardNumber, idPaymentMethod, idSubscriptionType) VALUES (i, v_idSpace, startDate, endDate, paidPrice, "xxxx xxxx xxxx", idPaymentMethod, idSubscriptionType);
+        INSERT INTO `Subscription` (idSubscriber, idSpace, startDate, endDate, paymentDate, paidPrice, creditCardNumber, idPaymentMethod, idSubscriptionType) VALUES (i, v_idSpace, startDate, endDate, paymentDate, paidPrice, "xxxx xxxx xxxx", idPaymentMethod, idSubscriptionType);
 		SET i = i + 1;
 	END WHILE;
 END$$
@@ -348,7 +391,7 @@ DECLARE paidPrice decimal(6,2);
 DECLARE idPaymentMethod int;
 
 	WHILE i <= 1500 DO	
-		 SET startDate = (SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2000-01-01 00:00:00') + FLOOR(0 + (RAND() * 63072000 / 2))), '%Y-%m-%d %H:%i:%s'));         
+		 SET startDate = (SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01 00:00:00') + FLOOR(0 + (RAND() * 63072000 / 2))), '%Y-%m-%d %H:%i:%s'));         
 		 SET endDate = (SELECT FnRandomDateBetween(startDate, (SELECT DATE_ADD(startDate, INTERVAL 1 DAY))));
 
          
@@ -374,6 +417,7 @@ DECLARE idPaymentMethod int;
 END$$
 DELIMITER ;
 Call insertOccasional();
+
 
 DROP FUNCTION IF EXISTS FnFindAvailableSpaces;
 DELIMITER |
@@ -406,14 +450,37 @@ Return availableSpaces;
 END |
 DELIMITER ;
 
-DROP PROCEDURE IF EXISTS showAvailableSpaces;
+DROP PROCEDURE IF EXISTS addNewSub;
 DELIMITER $$
-CREATE PROCEDURE `showAvailableSpaces`()
+CREATE PROCEDURE `addNewSub`(p_IdSubscriber int,p_StartDate Date, p_CardNumber Varchar(45), p_IdPaymentMethod int, p_IdSubscriptionType int)
+READS SQL DATA
+DETERMINISTIC
 BEGIN
-select FnFindAvailableSpaces(1) + FnFindAvailableSpaces(2) as 'Available spaces', FnFindAvailableSpaces(1) as 'Avaible spaces outdoor', FnFindAvailableSpaces(2) as 'Available spaces indoor';
+
+DECLARE paidPrice decimal(6,2);
+DECLARE endDate DATE;
+DECLARE paymentDate DATE;
+DECLARE v_idSpace int;
+	SET v_idSpace = (SELECT randomNumber(1, 2501));
+
+    
+    CASE WHEN p_IdSubscriptionType = 1 THEN
+			 SET endDate = DATE_ADD(p_StartDate, interval 1 month);
+             SET paidPrice = 240;
+			When p_IdSubscriptionType = 2 THEN
+			 SET endDate = DATE_ADD(p_StartDate, interval 1 year);
+             SET paidPrice = 2500;
+		END CASE;
+    
+    SET paymentDate = DATE_SUB(p_StartDate, INTERVAL 1 DAY); 
+    
+	INSERT INTO `Subscription` (idSubscriber, idSpace, startDate, endDate, paymentDate, paidPrice, creditCardNumber, idPaymentMethod, idSubscriptionType) VALUES (p_IdSubscriber,  v_idSpace, p_StartDate, endDate, paymentDate, paidPrice, p_CardNumber , p_IdPaymentMethod, p_IdSubscriptionType);
+    
 END$$
 DELIMITER ;
-call showAvailableSpaces();
+
+call addNewSub((SELECT randomNumber(1,701)) ,(SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')), 'xxxx-xxxx-xxxx-xxxx', 2, 2);
+
 
 DROP PROCEDURE IF EXISTS FnOccupiedBySubscriptions;
 DELIMITER $$
@@ -421,43 +488,44 @@ CREATE PROCEDURE `FnOccupiedBySubscriptions`(p_Date Date)
 READS SQL DATA
 DETERMINISTIC
 BEGIN
+	DECLARE totalCount int;
     DECLARE subSpaces int;
     DECLARE occupiedPlaces int;
     
     DROP TEMPORARY TABLE IF EXISTS tmp;
     CREATE TEMPORARY TABLE tmp SELECT sub.idSpace , subscrib.idVehicle , sub.startDate , sub.endDate FROM Subscription sub 
-    INNER JOIN Subscriber subscrib ON sub.idSubscriber  = subscrib.idSubscriber WHERE sub.startDate < p_Date AND sub.endDate > p_Date;
+    INNER JOIN Subscriber subscrib ON sub.idSubscriber = subscrib.idSubscriber WHERE sub.startDate < p_Date AND sub.endDate > p_Date;
+    
+    
+    Select * from tmp ;
+    Select COUNT(*) from tmp ;
+END $$
+DELIMITER ;
+
+DROP PROCEDURE IF EXISTS CalculateMoneyMade;
+DELIMITER $$
+CREATE PROCEDURE `CalculateMoneyMade`(p_Date Date)
+READS SQL DATA
+DETERMINISTIC
+BEGIN
+	Select SUM(paidPrice) as 'Total Money Made' from Subscription sub 
+    LEFT JOIN payment_method pm on sub.idPaymentMethod = pm.idPayment_Method where sub.paymentDate = p_Date;
+    
+    Select SUM(paidPrice) as 'Total Money Made' from Occasional occ 
+    LEFT JOIN payment_method pm on occ.idPaymentMethod = pm.idPayment_Method where occ.startDate = p_Date;
     
 END $$
 DELIMITER ;
-Call FnOccupiedBySubscriptions((SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2000-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')));
 
-DELIMITER | 
-CREATE TRIGGER on_update_number_of_spaces_occupied_occasional AFTER INSERT 
-ON Occasional FOR EACH ROW 
-BEGIN
-		
-	
-END |
-DELIMITER ;
+call CalculateMoneyMade('2019-12-24');
 
+Select FnFindAvailableSpaces(1);
 
+Call FnOccupiedBySubscriptions((SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')));
 
-
-DELIMITER | 
-CREATE TRIGGER on_update_number_of_spaces_occupied_subscription AFTER UPDATE
-ON Subscription FOR EACH ROW 
-BEGIN
-	SELECT FnFindAvailableSpaces(1);
-	SELECT FnFindAvailableSpaces(2);
-END |
-DELIMITER ;
-
- INSERT INTO `Occasional` (startDate, endDate, paidPrice, idPaymentMethod) VALUES ('2000-01-01 00:00:00', null , 20, 1);
-
--- DROP temporary table tmp;
-
-Select * from tmp;
+call addNewSub((SELECT randomNumber(1,701)) ,(SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')), 'xxxx-xxxx-xxxx-xxxx', 2, 2);
+call addNewSub((SELECT randomNumber(1,701)) ,(SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')), 'xxxx-xxxx-xxxx-xxxx', 2, 2);
+call addNewSub((SELECT randomNumber(1,701)) ,(SELECT DATE_FORMAT(FROM_UNIXTIME(UNIX_TIMESTAMP('2018-01-01') + FLOOR(0 + (RAND() * 63072000))), '%Y-%m-%d')), 'xxxx-xxxx-xxxx-xxxx', 2, 2);
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
